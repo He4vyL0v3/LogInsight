@@ -2,6 +2,7 @@
 #include <regex.h>
 #include <stdio.h>
 #include <string.h>
+#include "log_format.h"
 
 #define RED "\033[0;31m"
 #define YELLOW "\033[1;33m"
@@ -17,13 +18,15 @@ void colorize_log(const char *line)
     regex_t regex;
     int reti;
 
-    const char *patterns[] = {"\\|\\s*CRITICAL\\s*\\|", "\\|\\s*WARNING\\s*\\|", "\\|\\s*INFO\\s*\\|",
-                              "\\|\\s*DEBUG\\s*\\|",    "\\|\\s*ERROR\\s*\\|",   "\\|\\s*UNKNOWN\\s*\\|",
-                              "\\|\\s*TRACE\\s*\\|",    "\\|\\s*FATAL\\s*\\|"};
+    const char *level_names[] = {"CRITICAL", "WARNING", "INFO",
+                                "DEBUG", "ERROR", "UNKNOWN",
+                                "TRACE", "FATAL"};
+    const char *colors[] = {RED, YELLOW, GREEN, BLUE, RED, WHITE, PURPLE, ORANGE};
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < sizeof(level_names)/sizeof(level_names[0]); i++)
     {
-        reti = regcomp(&regex, patterns[i], REG_EXTENDED | REG_ICASE);
+        char *pattern = get_level_pattern(level_names[i]);
+        reti = regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE);
         if (reti)
         {
             fprintf(stderr, "Could not compile regex\n");
@@ -33,29 +36,13 @@ void colorize_log(const char *line)
         reti = regexec(&regex, line, 0, NULL, 0);
         if (reti == 0)
         {
-            switch (i)
-            {
-            case 0: // CRITICAL
-                printf("%s%s%s\n", RED, line, NC);
-                break;
-            case 1: // WARNING
-                printf("%s%s%s\n", YELLOW, line, NC);
-                break;
-            case 2: // INFO
-                printf("%s%s%s\n", GREEN, line, NC);
-                break;
-            case 3: // DEBUG
-                printf("%s%s%s\n", BLUE, line, NC);
-                break;
-            case 4: // ERROR
-                printf("%s%s%s\n", RED, line, NC);
-                break;
-            }
+            printf("%s%s%s\n", colors[i], line, NC);
             regfree(&regex);
             return;
         }
         regfree(&regex);
     }
 
+    // Если не найдено совпадений, печатаем без цвета
     printf("%s\n", line);
 }
