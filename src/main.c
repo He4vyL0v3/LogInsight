@@ -1,3 +1,4 @@
+#include "log_format.h"
 #include "log_monitor.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -19,11 +20,13 @@ void print_usage(const char *program_name)
     printf(".▀▀▀  ▀█▄▀▪·▀▀▀▀ ▀▀▀▀▀ █▪ ▀▀▀▀ ▀▀▀·▀▀▀▀ ▀▀▀ · ▀▀▀ \n");
     printf("\n");
     printf("\n\033[1;33m");
-    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] -i <file>\n", program_name);
+    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] -i <file> -fmt <format>\n", program_name);
     printf("      -r             Display all changes in real time\n");
     printf("      -f <level>     Level filtering (CRITICAL, WARNING, INFO, "
            "DEBUG)\n");
     printf("      -i <file>      Path to log file\n");
+    printf("      -fmt <format>  Log format (basic, apache, syslog, json)\n");
+    printf("      -strict        Strict format checking (only display lines matching format)\n");
     printf("      -h, --help     Show this help\n");
     printf("      -dp            Don't print log lines\n");
 }
@@ -58,6 +61,8 @@ int main(int argc, char *argv[])
     int print_lines = 1;
     char *start_date = NULL;
     char *end_date = NULL;
+    const char *log_format = "basic";
+    int strict_format = 0;
 
     for (int i = 1; i < argc; i++)
     {
@@ -88,6 +93,14 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--stats") == 0)
         {
             show_stats = 1;
+        }
+        else if (strcmp(argv[i], "-fmt") == 0 && i + 1 < argc)
+        {
+            log_format = argv[++i];
+        }
+        else if (strcmp(argv[i], "-strict") == 0)
+        {
+            strict_format = 1;
         }
         /*
         else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--date") == 0)
@@ -123,7 +136,25 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    // Инициализация форматов логов и выбор формата
+    init_log_formats();
+    if (!select_log_format(log_format))
+    {
+        fprintf(stderr, "Unknown log format: %s\n", log_format);
+        print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    // Установка режима строгой проверки формата, если указан
+    if (strict_format && current_format)
+    {
+        current_format->strict_format = 1;
+    }
+
     start_log_monitor(file_name, filter_levels, filter_count, real_time, show_stats, print_lines, start_date, end_date);
+
+    // Очистка ресурсов при завершении
+    cleanup_log_formats();
 
     return EXIT_SUCCESS;
 }
