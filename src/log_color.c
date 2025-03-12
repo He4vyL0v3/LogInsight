@@ -1,8 +1,8 @@
 #include "log_color.h"
+#include "log_format.h"
 #include <regex.h>
 #include <stdio.h>
 #include <string.h>
-#include "log_format.h"
 
 #define RED "\033[0;31m"
 #define YELLOW "\033[1;33m"
@@ -18,12 +18,10 @@ void colorize_log(const char *line)
     regex_t regex;
     int reti;
 
-    const char *level_names[] = {"CRITICAL", "WARNING", "INFO",
-                                "DEBUG", "ERROR", "UNKNOWN",
-                                "TRACE", "FATAL"};
+    const char *level_names[] = {"CRITICAL", "WARNING", "INFO", "DEBUG", "ERROR", "UNKNOWN", "TRACE", "FATAL"};
     const char *colors[] = {RED, YELLOW, GREEN, BLUE, RED, WHITE, PURPLE, ORANGE};
 
-    for (int i = 0; i < sizeof(level_names)/sizeof(level_names[0]); i++)
+    for (int i = 0; i < sizeof(level_names) / sizeof(level_names[0]); i++)
     {
         char *pattern = get_level_pattern(level_names[i]);
         reti = regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE);
@@ -43,6 +41,5 @@ void colorize_log(const char *line)
         regfree(&regex);
     }
 
-    // Если не найдено совпадений, печатаем без цвета
     printf("%s\n", line);
 }

@@ -1,10 +1,10 @@
+#include "log_format.h"
 #include "log_monitor.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "log_format.h"
 
 #define MAX_FILTERS 10
 #define MAX_FILTER_LENGTH 256
@@ -138,14 +138,16 @@ int main(int argc, char *argv[])
 
     // Инициализация форматов логов и выбор формата
     init_log_formats();
-    if (!select_log_format(log_format)) {
+    if (!select_log_format(log_format))
+    {
         fprintf(stderr, "Unknown log format: %s\n", log_format);
         print_usage(argv[0]);
         return EXIT_FAILURE;
     }
 
     // Установка режима строгой проверки формата, если указан
-    if (strict_format && current_format) {
+    if (strict_format && current_format)
+    {
         current_format->strict_format = 1;
     }
 
@@ -153,6 +155,6 @@ int main(int argc, char *argv[])
 
     // Очистка ресурсов при завершении
     cleanup_log_formats();
-    
+
     return EXIT_SUCCESS;
 }
