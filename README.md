@@ -109,7 +109,6 @@ LogInsight enhances readability with color-coded logs:
   <img src="imgs/2.png" width="600" alt="LogInsight Screenshot 1"/>
   <img src="imgs/3.png" width="600" alt="LogInsight Screenshot 2"/>
   <img src="imgs/4.png" width="600" alt="LogInsight Screenshot 3"/>
-  <img src="imgs/5.png" width="600" alt="LogInsight Screenshot 4"/>
 </div>
 
 ---
