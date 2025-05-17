@@ -2,111 +2,126 @@
 
 # 🚦 LogInsight
 
-<img src="imgs/1.png" width="600"/>
+<img src="imgs/1.png" width="600" alt="LogInsight Banner"/>
 
-### Powerful tool for log analysis and anomaly detection in your applications
+### A powerful, intuitive tool for log analysis and anomaly detection
+
+LogInsight empowers developers and system administrators to monitor, filter, and analyze logs with ease. Whether you're debugging applications or tracking system performance, LogInsight provides real-time insights with a user-friendly interface.
 
 <br>
-<a href="./LICENSE.md"><img  class="badge" src="https://img.shields.io/github/license/Nighty3098/LogInsight?style=for-the-badge&color=a6e0b8&logoColor=ffffff&labelColor=1c1c29"  height="23px" style="border-radius: 5px;"/></a>
-<img class="badge" src="https://img.shields.io/github/issues-pr/Nighty3098/LogInsight?style=for-the-badge&color=ef9f9c&logoColor=85e185&labelColor=1c1c29" height="23px" style="border-radius: 5px;" />
-<img class="badge" src="https://img.shields.io/github/release/Nighty3098/LogInsight?style=for-the-badge&color=7589d5&logoColor=ffffff&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
-<img class="badge" src="https://img.shields.io/github/issues/Nighty3098/LogInsight?style=for-the-badge&color=dbb6ed&logoColor=ffffff&labelColor=1c1c29"  height="23px" style="border-radius: 5px;"/>
-<img class="badge" src="https://img.shields.io/github/downloads/Nighty3098/LogInsight/total?style=for-the-badge&color=e0ea9d&logoColor=D9E0EE&labelColor=171b22" height="23px" style="border-radius: 5px;"/>
-<img class="badge" src="https://img.shields.io/github/stars/Nighty3098/LogInsight?style=for-the-badge&color=eed49f&logoColor=D9E0EE&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
-<img class="badge" src="https://img.shields.io/github/forks/Nighty3098/LogInsight?style=for-the-badge&color=9dc3ea&logoColor=D9E0EE&labelColor=1c1c29"  height="23px" style="border-radius: 5px;"/>
-<br>
-<img src="https://github.com/Nighty3098/DevIcons/blob/main/badges/badges_c.png?raw=true" width="50px" />
-<img src="https://github.com/Nighty3098/DevIcons/blob/main/badges/badges_linux.png?raw=true" width="50px" />
-<img src="https://github.com/Nighty3098/DevIcons/blob/main/badges/badges_bash.png?raw=true" width="50px" />
+<a href="./LICENSE.md"><img src="https://img.shields.io/github/license/Nighty3098/LogInsight?style=for-the-badge&color=a6e0b8&logoColor=ffffff&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/></a>
+<img src="https://img.shields.io/github/release/Nighty3098/LogInsight?style=for-the-badge&color=7589d5&logoColor=ffffff&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
+<img src="https://img.shields.io/github/issues/Nighty3098/LogInsight?style=for-the-badge&color=dbb6ed&logoColor=ffffff&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
+<img src="https://img.shields.io/github/stars/Nighty3098/LogInsight?style=for-the-badge&color=eed49f&logoColor=D9E0EE&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
 
-<a href="https://github.com/DXS-GROUP/LogInsight/tree/InDev"><kbd> <br>DEV VERSION<br> </kbd></a>
+<br><br>
+<a href="https://github.com/DXS-GROUP/LogInsight/tree/InDev"><kbd> <br>Development Version<br> </kbd></a>
+
+</div>
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started
+
+Get up and running with LogInsight in just a few steps:
 
 ```bash
 git clone https://github.com/Nighty3098/LogInsight
 cd LogInsight
 make
-sudo ln LogInsight /bin/
+sudo ln -s $(pwd)/LogInsight /usr/local/bin/
 LogInsight
 ```
 
 ---
 
-## 📖 Usage
+## 📖 Command-Line Usage
+
+LogInsight offers a flexible CLI to suit your log analysis needs:
 
 ```bash
 LogInsight [-r] [-dp] [-h] [-f <level>] -i <file> -fmt <format> [-d <start_date> [<end_date>]] [-strict]
 ```
 
-| Flag                | Description                                                                                 |
-|---------------------|--------------------------------------------------------------------------------------------|
-| `-i <file>`         | Path to the log file                                                                       |
-| `-f <level>`        | Filter by log level (CRITICAL, WARNING, INFO, DEBUG, etc.)                                 |
-| `-r`                | Display all changes in real time                                                           |
-| `-fmt <format>`     | Log format (basic, apache, syslog, json)                                                   |
-| `-d <start> [end]`  | Filter logs by date/time (format: `YYYY-MM-DD HH:MM:SS`), you can specify a range          |
-| `-strict`           | Strict format checking (show only lines matching the format)                               |
-| `-dp`               | Do not print log lines                                                                     |
-| `-h, --help`        | Show this help                                                                             |
+### Options
+
+| Option              | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `-i <file>`         | Specify the path to the log file.                                          |
+| `-f <level>`        | Filter logs by level (e.g., CRITICAL, WARNING, INFO, DEBUG).               |
+| `-r`                | Enable real-time monitoring of log changes.                                |
+| `-fmt <format>`     | Set log format (e.g., basic, apache, syslog, json).                        |
+| `-d <start> [end]`  | Filter logs by date/time range (format: `YYYY-MM-DD HH:MM:SS`).            |
+| `-strict`           | Display only lines strictly matching the specified format.                 |
+| `-dp`               | Suppress printing of log lines (useful for stats-only output).             |
+| `-h, --help`        | Display the help menu.                                                    |
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **Real-time log monitoring**: Instantly see new log entries as they appear in the file.
-- **Flexible log level filtering**: Show only the log levels you care about (e.g., ERROR, WARNING, INFO, DEBUG, etc.).
-- **Date/time filtering**: Display logs for a specific period or between two timestamps.
-- **Multi-format support**: Parse logs in various formats: basic, Apache, syslog, JSON.
-- **Colorful visualization**: Errors (`ERROR`) are highlighted in **red**, successful operations (`SUCCESS`) in **green**, and other lines in default color for easy scanning.
-- **Statistics**: Get a summary of log levels (counts for CRITICAL, ERROR, WARNING, INFO, etc.).
-- **File size reporting**: See the size of your log file in a human-readable format.
-- **Strict format mode**: Only display lines that strictly match the selected log format.
-- **Resource usage stats**: Optionally display elapsed time, memory, and CPU usage for log analysis.
-- **Easy integration**: Simple CLI interface, can be used in scripts and pipelines.
-- **Cross-platform**: Designed for Linux, works in any POSIX environment.
+- **Real-Time Monitoring**: View new log entries as they are written to the file.
+- **Log Level Filtering**: Focus on specific log levels like ERROR, WARNING, or INFO.
+- **Date/Time Filtering**: Narrow down logs to a specific time range.
+- **Multi-Format Support**: Parse logs in basic, Apache, syslog, or JSON formats.
+- **Color-Coded Output**: 
+  - **Red** for ERROR logs
+  - **Green** for SUCCESS logs
+  - Default color for others
+- **Detailed Statistics**: Summarize log levels (e.g., count of CRITICAL, ERROR, etc.).
+- **File Size Insights**: View log file size in a human-readable format.
+- **Strict Format Mode**: Filter out non-compliant log lines.
+- **Performance Metrics**: Optionally display CPU, memory, and elapsed time for analysis.
+- **Script-Friendly**: Easily integrate into scripts and automation pipelines.
+- **Cross-Platform**: Optimized for Linux and POSIX-compliant environments.
 
 ---
 
 ## 💡 Example Commands
 
+Analyze logs with precision using these examples:
+
 ```bash
-# Analyze logs for a specific period
+# Filter logs for a specific time range
 LogInsight -i /var/log/app.log -d "2025-03-12 15:18:06" "2025-03-12 15:18:09"
 
-# Show only errors
+# Display only ERROR logs
 LogInsight -i /var/log/app.log -f ERROR
 
-# Real-time monitoring for WARNING and CRITICAL
+# Monitor WARNING and CRITICAL logs in real time
 LogInsight -i /var/log/app.log -f WARNING -f CRITICAL -r
 
-# Use strict format mode
+# Enforce strict format parsing
 LogInsight -i /var/log/app.log -fmt basic -strict
 ```
 
 ---
 
-## 🎨 Visualization
+## 🎨 Visual Output
 
-- Errors (`ERROR`) are highlighted in **red**
-- Successes (`SUCCESS`) are highlighted in **green**
-- All other lines are shown in the default color
+LogInsight enhances readability with color-coded logs:
 
-<img src="imgs/2.png" width="600"/>
-<img src="imgs/3.png" width="600"/>
-<img src="imgs/4.png" width="600"/>
-<img src="imgs/5.png" width="600"/>
+- **ERROR**: Highlighted in **red** for quick identification.
+- **SUCCESS**: Displayed in **green** to confirm successful operations.
+- Other logs remain in the default color for clarity.
+
+<div align="center">
+  <img src="imgs/2.png" width="600" alt="LogInsight Screenshot 1"/>
+  <img src="imgs/3.png" width="600" alt="LogInsight Screenshot 2"/>
+  <img src="imgs/4.png" width="600" alt="LogInsight Screenshot 3"/>
+  <img src="imgs/5.png" width="600" alt="LogInsight Screenshot 4"/>
+</div>
 
 ---
 
 ## 🛡️ License
 
-This project is licensed under the [MIT License](./LICENSE.md).
+LogInsight is proudly licensed under the [MIT License](./LICENSE.md).
 
 ---
 
-**LogInsight** — your fast and convenient way to analyze logs and detect anomalies!
+<div align="center">
+
+**LogInsight** — Your go-to solution for fast, reliable log analysis and anomaly detection.
 
 </div>
