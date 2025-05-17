@@ -29,51 +29,50 @@ void stop_monitoring()
     long system_cpu_time = end_usage.ru_stime.tv_sec * 1000000 + end_usage.ru_stime.tv_usec;
     double cpu_time = (user_cpu_time + system_cpu_time) / 1000000.0;
 
-    printf(GREEN "┌─────────────────────────────⬤ \n");
+    printf("\n\nPerformance:\n");
     if (elapsed < 1.0)
     {
-        printf("│ ⬤  Elapsed time: %.3f milliseconds\n", elapsed * 1000);
+        printf(" ⬤  Elapsed time: %.3f milliseconds\n", elapsed * 1000);
     }
     else if (elapsed < 60.0)
     {
-        printf("│ ⬤  Elapsed time: %.3f seconds\n", elapsed);
+        printf(" ⬤  Elapsed time: %.3f seconds\n", elapsed);
     }
     else if (elapsed < 3600.0)
     {
         double minutes = elapsed / 60.0;
-        printf("│ ⬤  Elapsed time: %.3f minutes\n", minutes);
+        printf(" ⬤  Elapsed time: %.3f minutes\n", minutes);
     }
     else if (elapsed < 86400.0)
     {
         double hours = elapsed / 3600.0;
-        printf("│ ⬤  Elapsed time: %.3f hours\n", hours);
+        printf(" ⬤  Elapsed time: %.3f hours\n", hours);
     }
     else
     {
         double days = elapsed / 86400.0;
-        printf("│ ⬤  Elapsed time: %.3f days\n", days);
+        printf(" ⬤  Elapsed time: %.3f days\n", days);
     }
 
     if (memory_used < 1024)
     {
-        printf("│ ⬤  Memory used: %ld bytes\n", memory_used);
+        printf(" ⬤  Memory used: %ld bytes\n", memory_used);
     }
     else if (memory_used < 1024 * 1024)
     {
-        printf("│ ⬤  Memory used: %.2f KB\n", memory_used / 1024.0);
+        printf(" ⬤  Memory used: %.2f KB\n", memory_used / 1024.0);
     }
     else
     {
-        printf("│ ⬤  Memory used: %.2f MB\n", memory_used / (1024.0 * 1024.0));
+        printf(" ⬤  Memory used: %.2f MB\n", memory_used / (1024.0 * 1024.0));
     }
 
     if (cpu_time < 1.0)
     {
-        printf("│ ⬤  CPU time: %.3f milliseconds\n", cpu_time * 1000);
+        printf(" ⬤  CPU time: %.3f milliseconds\n", cpu_time * 1000);
     }
     else
     {
-        printf("│ ⬤  CPU time: %.3f seconds\n", cpu_time);
+        printf(" ⬤  CPU time: %.3f seconds\n", cpu_time);
     }
-    printf("└─────────────────────────────⬤ \n");
 }

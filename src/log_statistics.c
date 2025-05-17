@@ -22,15 +22,13 @@ void print_statistics()
         {"UNKNOWN", unknown_count, "\033[1;37m"}    // WHITE
     };
 
-    printf("\033[1;34m┌─────────────────────────────⬤ \n│    Log Statistics:\n");
+    printf("\n\033[1;34mLog Statistics:\n");
 
     for (int i = 0; i < sizeof(log_levels) / sizeof(log_levels[0]); i++)
     {
         if (log_levels[i].count > 0)
         {
-            printf("\033[0;34m│%s ⬤ %s: %ld\n", log_levels[i].color, log_levels[i].label, log_levels[i].count);
+            printf("\033[0;34m%s ⬤ %s: %ld\n", log_levels[i].color, log_levels[i].label, log_levels[i].count);
         }
     }
-
-    printf("\033[1;34m└─────────────────────────────⬤ \n");
 }

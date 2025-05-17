@@ -19,8 +19,8 @@ void print_file_size(const char *file_name)
             unit_index++;
         }
 
-        printf(RED "\n┌─────────────────────────────⬤ \n│ ⬤  File size: %.2f "
-                   "%s\n└─────────────────────────────⬤ \n" NC,
+        printf(RED "\n\nFile size: %.2f "
+                   "%s\n\n" NC,
                (double)size, units[unit_index]);
     }
     else
