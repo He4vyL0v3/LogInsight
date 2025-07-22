@@ -1,4 +1,3 @@
-// performance_monitor.h
 #ifndef PERFORMANCE_MONITOR_H
 #define PERFORMANCE_MONITOR_H
 

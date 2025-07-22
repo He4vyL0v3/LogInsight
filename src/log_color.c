@@ -16,7 +16,6 @@
 void colorize_log(const char *line)
 {
     regex_t regex;
-    int reti;
 
     const char *level_names[] = {"CRITICAL", "WARNING", "INFO", "DEBUG", "ERROR", "UNKNOWN", "TRACE", "FATAL"};
     const char *colors[] = {RED, YELLOW, GREEN, BLUE, RED, WHITE, PURPLE, ORANGE};
@@ -24,6 +23,7 @@ void colorize_log(const char *line)
     for (int i = 0; i < sizeof(level_names) / sizeof(level_names[0]); i++)
     {
         char *pattern = get_level_pattern(level_names[i]);
+        int reti;
         reti = regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE);
         if (reti)
         {

@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 
-typedef struct {
-  const char *label;
-  long int count;
-  const char *color;
+typedef struct
+{
+    const char *label;
+    long int count;
+    const char *color;
 } LogLevel;
 
 void print_statistics();
