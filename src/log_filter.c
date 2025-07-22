@@ -6,7 +6,7 @@
 #define MAX_PATTERN_LENGTH 256
 #define MAX_FILTER_LENGTH 256
 
-int should_print_log(const char *line, char *filter_levels[], int filter_count, const char *start_date_str,
+int should_print_log(const char *line, const char *const filter_levels[], int filter_count, const char *start_date_str,
                      const char *end_date_str)
 {
     if (filter_count == 0)

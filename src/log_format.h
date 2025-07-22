@@ -1,7 +1,8 @@
 #ifndef LOG_FORMAT_H
 #define LOG_FORMAT_H
 
-typedef struct {
+typedef struct
+{
     const char *name;
     const char *date_regex;
     const char *level_regex;
@@ -19,4 +20,4 @@ int select_log_format(const char *format_name);
 char *get_level_pattern(const char *level);
 void cleanup_log_formats();
 
-#endif // LOG_FORMAT_H 
+#endif // LOG_FORMAT_H
