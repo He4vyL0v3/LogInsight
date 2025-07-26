@@ -126,8 +126,8 @@ void count_log_levels(const char *line)
     pthread_mutex_unlock(&count_mutex);
 }
 
-void process_line(const char *line, char *filter_levels[], int filter_count, int print_lines, char *const start_date,
-                  char *const end_date)
+void process_line(const char *line, char *filter_levels[], int filter_count, int print_lines,
+                  const char *const start_date, const char *const end_date)
 {
     if (should_print_log(line, filter_levels, filter_count, start_date, end_date))
     {
