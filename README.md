@@ -14,9 +14,6 @@ LogInsight empowers developers and system administrators to monitor, filter, and
 <img src="https://img.shields.io/github/issues/Nighty3098/LogInsight?style=for-the-badge&color=dbb6ed&logoColor=ffffff&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
 <img src="https://img.shields.io/github/stars/Nighty3098/LogInsight?style=for-the-badge&color=eed49f&logoColor=D9E0EE&labelColor=1c1c29" height="23px" style="border-radius: 5px;"/>
 
-<br><br>
-<a href="https://github.com/DXS-GROUP/LogInsight/tree/InDev"><kbd> <br>Development Version<br> </kbd></a>
-
 </div>
 
 ---
