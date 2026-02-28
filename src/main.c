@@ -15,12 +15,12 @@ void print_usage(const char *program_name)
     printf("\n\033[0;31m");
     printf("▄▄▌         ▄▄ • ▪   ▐ ▄ .▄▄ · ▪   ▄▄ •  ▄ .▄▄▄▄▄▄\n");
     printf("██•  ▪     ▐█ ▀ ▪██ •█▌▐█▐█ ▀. ██ ▐█ ▀ ▪██▪▐█•██  \n");
-    printf("██▪   ▄█▀▄ ▄█ ▀█▄▐█·▐█▐▐▌▄▀▀▀█▄▐█·▄█ ▀█▄██▀▐█ ▐█.▪\n");
+    printf("██▪   ▄█▀▄ ▄█ ▀█▄▐█·▐█▐▌▄▀▀▀█▄▐█·▄█ ▀█▄██▀▐█ ▐█.▪\n");
     printf("▐█▌▐▌▐█▌.▐▌▐█▄▪▐█▐█▌██▐█▌▐█▄▪▐█▐█▌▐█▄▪▐███▌▐▀ ▐█▌·\n");
     printf(".▀▀▀  ▀█▄▀▪·▀▀▀▀ ▀▀▀▀▀ █▪ ▀▀▀▀ ▀▀▀·▀▀▀▀ ▀▀▀ · ▀▀▀ \n");
     printf("\n");
     printf("\n\033[1;33m");
-    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] [-i <file>] -fmt <format>\n", program_name);
+    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] [-i <file>] -fmt <format> [-d <start> [<end>]]\n", program_name);
     printf("      -r             Display all changes in real time\n");
     printf("      -f <level>     Level filtering (CRITICAL, WARNING, INFO, DEBUG)\n");
     printf("      -i <file>      Path to log file (optional, reads from stdin if omitted)\n");
@@ -28,6 +28,7 @@ void print_usage(const char *program_name)
     printf("      -strict        Strict format checking (only display lines matching format)\n");
     printf("      -h, --help     Show this help\n");
     printf("      -dp            Don't print log lines\n");
+    printf("      -d <start> [<end>]  Date/time range filter (format: \"YYYY-MM-DD HH:MM:SS\")\n");
 }
 
 char *normalize_date(const char *input)
@@ -100,6 +101,17 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "-strict") == 0)
         {
             strict_format = 1;
+        }
+        else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--date") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                start_date = argv[++i];
+                if (i + 1 < argc && argv[i + 1][0] != '-')
+                {
+                    end_date = argv[++i];
+                }
+            }
         }
     }
 
