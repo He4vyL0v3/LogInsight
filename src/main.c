@@ -15,20 +15,20 @@ void print_usage(const char *program_name)
     printf("\n\033[0;31m");
     printf("▄▄▌         ▄▄ • ▪   ▐ ▄ .▄▄ · ▪   ▄▄ •  ▄ .▄▄▄▄▄▄\n");
     printf("██•  ▪     ▐█ ▀ ▪██ •█▌▐█▐█ ▀. ██ ▐█ ▀ ▪██▪▐█•██  \n");
-    printf("██▪   ▄█▀▄ ▄█ ▀█▄▐█·▐█▐▐▌▄▀▀▀█▄▐█·▄█ ▀█▄██▀▐█ ▐█.▪\n");
+    printf("██▪   ▄█▀▄ ▄█ ▀█▄▐█·▐█▐▌▄▀▀▀█▄▐█·▄█ ▀█▄██▀▐█ ▐█.▪\n");
     printf("▐█▌▐▌▐█▌.▐▌▐█▄▪▐█▐█▌██▐█▌▐█▄▪▐█▐█▌▐█▄▪▐███▌▐▀ ▐█▌·\n");
     printf(".▀▀▀  ▀█▄▀▪·▀▀▀▀ ▀▀▀▀▀ █▪ ▀▀▀▀ ▀▀▀·▀▀▀▀ ▀▀▀ · ▀▀▀ \n");
     printf("\n");
     printf("\n\033[1;33m");
-    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] -i <file> -fmt <format>\n", program_name);
+    printf(" 🗲 Usage: %s [-r] [-dp] [-h] [-f <level>] [-i <file>] -fmt <format> [-d <start> [<end>]]\n", program_name);
     printf("      -r             Display all changes in real time\n");
-    printf("      -f <level>     Level filtering (CRITICAL, WARNING, INFO, "
-           "DEBUG)\n");
-    printf("      -i <file>      Path to log file\n");
+    printf("      -f <level>     Level filtering (CRITICAL, WARNING, INFO, DEBUG)\n");
+    printf("      -i <file>      Path to log file (optional, reads from stdin if omitted)\n");
     printf("      -fmt <format>  Log format (basic, apache, syslog, json)\n");
     printf("      -strict        Strict format checking (only display lines matching format)\n");
     printf("      -h, --help     Show this help\n");
     printf("      -dp            Don't print log lines\n");
+    printf("      -d <start> [<end>]  Date/time range filter (format: \"YYYY-MM-DD HH:MM:SS\")\n");
 }
 
 char *normalize_date(const char *input)
@@ -39,8 +39,8 @@ char *normalize_date(const char *input)
         return NULL;
     }
     struct tm tm = {0};
-    if (sscanf(input, "%4d-%2d-%2d %2d:%2d:%2d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min,
-               &tm.tm_sec) == 6)
+    if (sscanf(input, "%4d-%2d-%2d %2d:%2d:%2d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
+               &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 6)
     {
         tm.tm_year -= 1900;
         tm.tm_mon -= 1;
@@ -102,41 +102,19 @@ int main(int argc, char *argv[])
         {
             strict_format = 1;
         }
-        /*
         else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--date") == 0)
         {
             if (i + 1 < argc)
             {
-                start_date = normalize_date(argv[++i]);
-                if (start_date == NULL)
-                {
-                    fprintf(stderr, "Invalid start date format: %s\n", argv[i]);
-                    return EXIT_FAILURE;
-                }
+                start_date = argv[++i];
                 if (i + 1 < argc && argv[i + 1][0] != '-')
                 {
-                    end_date = normalize_date(argv[++i]);
-                    if (end_date != NULL)
-                    {
-                    }
-                    else
-                    {
-                        fprintf(stderr, "Invalid end date format: %s\n", argv[i]);
-                        return EXIT_FAILURE;
-                    }
+                    end_date = argv[++i];
                 }
             }
         }
-        */
     }
 
-    if (!file_name)
-    {
-        print_usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    // Инициализация форматов логов и выбор формата
     init_log_formats();
     if (!select_log_format(log_format))
     {
@@ -145,7 +123,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Установка режима строгой проверки формата, если указан
     if (strict_format && current_format)
     {
         current_format->strict_format = 1;
@@ -153,7 +130,6 @@ int main(int argc, char *argv[])
 
     start_log_monitor(file_name, filter_levels, filter_count, real_time, show_stats, print_lines, start_date, end_date);
 
-    // Очистка ресурсов при завершении
     cleanup_log_formats();
 
     return EXIT_SUCCESS;

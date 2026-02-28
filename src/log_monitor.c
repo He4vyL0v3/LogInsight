@@ -158,22 +158,116 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
         start_monitoring();
     }
 
-    int fd = open(file_name, O_RDONLY);
-    if (fd == -1)
+    int use_stdin = (file_name == NULL);
+    int fd;
+    if (use_stdin)
     {
-        perror("open");
-        free_regex_patterns();
-        return;
+        fd = STDIN_FILENO;
+    }
+    else
+    {
+        fd = open(file_name, O_RDONLY);
+        if (fd == -1)
+        {
+            perror("open");
+            free_regex_patterns();
+            return;
+        }
     }
 
     char *buffer = malloc(INITIAL_BUFFER_SIZE);
     size_t buffer_size = INITIAL_BUFFER_SIZE;
     size_t current_length = 0;
 
-    if (!real_time)
+    if (real_time && !use_stdin)
     {
-        ssize_t bytes_read;
+        int inotify_fd = inotify_init();
+        if (inotify_fd < 0)
+        {
+            perror("inotify_init");
+            close(fd);
+            free(buffer);
+            return;
+        }
 
+        int wd = inotify_add_watch(inotify_fd, file_name, IN_MODIFY);
+        if (wd == -1)
+        {
+            perror("inotify_add_watch");
+            close(fd);
+            close(inotify_fd);
+            free(buffer);
+            return;
+        }
+
+        off_t offset = lseek(fd, 0, SEEK_END);
+
+        while (running)
+        {
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(inotify_fd, &readfds);
+
+            struct timeval tv;
+            tv.tv_sec = 1;
+            tv.tv_usec = 0;
+
+            int retval = select(inotify_fd + 1, &readfds, NULL, NULL, &tv);
+
+            if (retval == -1)
+            {
+                perror("select");
+                break;
+            }
+            else if (retval == 0)
+            {
+                continue;
+            }
+
+            char event_buf[EVENT_BUF_LEN];
+
+            ssize_t bytes = read(inotify_fd, event_buf, EVENT_BUF_LEN);
+
+            if (bytes < 0)
+            {
+                perror("read");
+                break;
+            }
+
+            lseek(fd, offset, SEEK_SET);
+            ssize_t bytes_read = read(fd, buffer + current_length, buffer_size - current_length - 1);
+
+            if (bytes_read > 0)
+            {
+                current_length += bytes_read;
+                buffer[current_length] = '\0';
+
+                char *line_start = buffer;
+                char *line_end;
+
+                while ((line_end = strchr(line_start, '\n')) != NULL)
+                {
+                    *line_end = '\0';
+                    process_line(line_start, filter_levels, filter_count, print_lines, start_date, end_date);
+                    line_start = line_end + 1;
+                }
+
+                current_length -= (line_start - buffer);
+                memmove(buffer, line_start, current_length);
+                offset += bytes_read;
+            }
+        }
+
+        inotify_rm_watch(inotify_fd, wd);
+        close(inotify_fd);
+
+        print_file_size(file_name);
+        print_statistics();
+    }
+    else
+    {
+        /* Non‑real‑time read: read until EOF. */
+        ssize_t bytes_read;
         while ((bytes_read = read(fd, buffer + current_length, buffer_size - current_length - 1)) > 0)
         {
             current_length += bytes_read;
@@ -193,102 +287,18 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
             memmove(buffer, line_start, current_length);
         }
 
-        close(fd);
-        print_file_size(file_name);
+        if (!use_stdin)
+        {
+            close(fd);
+            print_file_size(file_name);
+        }
         print_statistics();
-        if (show_stats)
-        {
-            stop_monitoring();
-        }
-        free_regex_patterns();
-        free(buffer);
-        return;
     }
 
-    int inotify_fd = inotify_init();
-    if (inotify_fd < 0)
-    {
-        perror("inotify_init");
-        close(fd);
-        free(buffer);
-        return;
-    }
-
-    int wd = inotify_add_watch(inotify_fd, file_name, IN_MODIFY);
-    if (wd == -1)
-    {
-        perror("inotify_add_watch");
-        close(fd);
-        close(inotify_fd);
-        free(buffer);
-        return;
-    }
-
-    off_t offset = lseek(fd, 0, SEEK_END);
-
-    while (running)
-    {
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(inotify_fd, &readfds);
-
-        struct timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-
-        int retval = select(inotify_fd + 1, &readfds, NULL, NULL, &tv);
-
-        if (retval == -1)
-        {
-            perror("select");
-            break;
-        }
-        else if (retval == 0)
-        {
-            continue;
-        }
-
-        char event_buf[EVENT_BUF_LEN];
-
-        ssize_t bytes = read(inotify_fd, event_buf, EVENT_BUF_LEN);
-
-        if (bytes < 0)
-        {
-            perror("read");
-            break;
-        }
-
-        lseek(fd, offset, SEEK_SET);
-        ssize_t bytes_read = read(fd, buffer + current_length, buffer_size - current_length - 1);
-
-        if (bytes_read > 0)
-        {
-            current_length += bytes_read;
-            buffer[current_length] = '\0';
-
-            char *line_start = buffer;
-            char *line_end;
-
-            while ((line_end = strchr(line_start, '\n')) != NULL)
-            {
-                *line_end = '\0';
-                process_line(line_start, filter_levels, filter_count, print_lines, start_date, end_date);
-                line_start = line_end + 1;
-            }
-
-            current_length -= (line_start - buffer);
-            memmove(buffer, line_start, current_length);
-            offset += bytes_read;
-        }
-    }
-
-    inotify_rm_watch(inotify_fd, wd);
-
-    print_file_size(file_name);
-    print_statistics();
     free_regex_patterns();
-    stop_monitoring();
-
-    close(fd);
     free(buffer);
+    if (show_stats)
+    {
+        stop_monitoring();
+    }
 }

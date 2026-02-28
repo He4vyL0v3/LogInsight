@@ -12,46 +12,71 @@ LogFormat *current_format = NULL;
 
 void init_log_formats()
 {
-    LogFormat basic_format = {.name = "basic",
-                              .date_regex = "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}",
-                              .level_regex = "\\|\\s*%s\\s*\\|",
-                              .message_regex = ".*",
-                              .level_position = 1,
-                              .date_position = 0,
-                              .message_position = 2,
-                              .strict_format = 0};
+    LogFormat basic_format = {
+        .name            = "basic",
+        .date_regex      = "\\([0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}\\)",
+        .level_regex     = "\\|[[:space:]]*%s[[:space:]]*\\|",
+        .message_regex   = ".*",
+        .level_position  = 1,
+        .date_position   = 0,
+        .message_position= 2,
+        .strict_format   = 0,
+        .date_strptime   = "%Y-%m-%d %H:%M:%S"
+    };
 
-    LogFormat apache_format = {.name = "apache",
-                               .date_regex = "\\[\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[+-]\\d{4}\\]",
-                               .level_regex = "\"[A-Z]+",
-                               .message_regex = ".*",
-                               .level_position = 1,
-                               .date_position = 0,
-                               .message_position = 2,
-                               .strict_format = 0};
+    LogFormat apache_format = {
+        .name            = "apache",
+        .date_regex      = "\\(\\[[0-9]{2}/[A-Za-z]{3}/[0-9]{4}:[0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]][+-][0-9]{4}\\]\\)",
+        .level_regex     = "\"[A-Z]+\"",
+        .message_regex   = ".*",
+        .level_position  = 1,
+        .date_position   = 0,
+        .message_position= 2,
+        .strict_format   = 0,
+        .date_strptime   = "%d/%b/%Y:%H:%M:%S %z"
+    };
 
-    LogFormat syslog_format = {.name = "syslog",
-                               .date_regex = "\\w{3}\\s+\\d+\\s\\d{2}:\\d{2}:\\d{2}",
-                               .level_regex = "\\s%s\\s",
-                               .message_regex = ".*",
-                               .level_position = 1,
-                               .date_position = 0,
-                               .message_position = 2,
-                               .strict_format = 0};
+    LogFormat syslog_format = {
+        .name            = "syslog",
+        .date_regex      = "\\(\\[A-Za-z]{3}[[:space:]]+[0-9]+[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}\\)",
+        .level_regex     = "[[:space:]]%s[[:space:]]",
+        .message_regex   = ".*",
+        .level_position  = 1,
+        .date_position   = 0,
+        .message_position= 2,
+        .strict_format   = 0,
+        .date_strptime   = "%b %d %H:%M:%S"
+    };
 
-    LogFormat json_format = {.name = "json",
-                             .date_regex = "\"timestamp\"\\s*:\\s*\"[^\"]+\"",
-                             .level_regex = "\"level\"\\s*:\\s*\"%s\"",
-                             .message_regex = "\"message\"\\s*:\\s*\"[^\"]+\"",
-                             .level_position = 1,
-                             .date_position = 0,
-                             .message_position = 2,
-                             .strict_format = 0};
+    LogFormat json_format = {
+        .name            = "json",
+        .date_regex      = "\\(\"timestamp\"[[:space:]]*:[[:space:]]*\"[^\"]+\"\\)",
+        .level_regex     = "\"level\"[[:space:]]*:[[:space:]]*\"%s\"",
+        .message_regex   = "\"message\"[[:space:]]*:[[:space:]]*\"[^\"]+\"",
+        .level_position  = 1,
+        .date_position   = 0,
+        .message_position= 2,
+        .strict_format   = 0,
+        .date_strptime   = "%Y-%m-%dT%H:%M:%SZ"
+    };
+
+    LogFormat custom_format = {
+        .name            = "custom",
+        .date_regex      = "([0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3})",
+        .level_regex     = "\\|[[:space:]]*%s[[:space:]]*\\|",
+        .message_regex   = ".*",
+        .level_position  = 1,
+        .date_position   = 0,
+        .message_position= 2,
+        .strict_format   = 0,
+        .date_strptime   = "%Y-%m-%d %H:%M:%S"
+    };
 
     log_formats[format_count++] = basic_format;
     log_formats[format_count++] = apache_format;
     log_formats[format_count++] = syslog_format;
     log_formats[format_count++] = json_format;
+    log_formats[format_count++] = custom_format;
 
     current_format = &log_formats[0];
 }

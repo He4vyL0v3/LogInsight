@@ -11,6 +11,7 @@ typedef struct
     int date_position;
     int message_position;
     int strict_format;
+    const char *date_strptime;
 } LogFormat;
 
 extern LogFormat *current_format;
