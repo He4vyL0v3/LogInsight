@@ -1,12 +1,21 @@
+/**
+ * @file log_monitor.c
+ * @brief Core log monitoring and processing functionality.
+ *
+ * Handles file monitoring, real-time updates via inotify, line processing,
+ * filtering, and statistics collection. This is the main orchestrator
+ * module that coordinates all other components.
+ */
+
 #include "log_monitor.h"
 #include "file_size.h"
 #include "log_color.h"
 #include "log_filter.h"
+#include "log_levels.h"
 #include "log_statistics.h"
 #include "performance_monitor.h"
 #include <errno.h>
 #include <fcntl.h>
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,15 +30,6 @@
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define EVENT_BUF_LEN (1024 * EVENT_SIZE)
 
-#define RED "\033[0;31m"
-#define YELLOW "\033[1;33m"
-#define GREEN "\033[0;32m"
-#define BLUE "\033[0;34m"
-#define PURPLE "\033[0;35m"
-#define WHITE "\033[1;37m"
-#define ORANGE "\033[38;5;214m"
-#define NC "\033[0m"
-
 long int critical_count = 0;
 long int warning_count = 0;
 long int info_count = 0;
@@ -39,80 +39,75 @@ long int trace_count = 0;
 long int unknown_count = 0;
 long int fatal_count = 0;
 
-regex_t regex_patterns[8];
 static int running = 1;
 pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/**
+ * @brief Signal handler for graceful shutdown.
+ *
+ * Catches SIGINT (Ctrl+C) and sets the running flag to 0,
+ * allowing the main loop to exit cleanly.
+ *
+ * @param signal The signal number received.
+ */
 void handle_signal(int signal)
 {
-    if (signal == SIGINT)
+    (void)signal;
+    if (running)
     {
         running = 0;
-        printf(RED "\n\nBye...\n");
+        printf("\033[1;31m\n\nBye...\n\033[0m");
     }
 }
 
-void compile_regex_patterns()
-{
-    const char *patterns[] = {"\\|\\s*CRITICAL\\s*\\|", "\\|\\s*WARNING\\s*\\|", "\\|\\s*INFO\\s*\\|",
-                              "\\|\\s*DEBUG\\s*\\|",    "\\|\\s*ERROR\\s*\\|",   "\\|\\s*UNKNOWN\\s*\\|",
-                              "\\|\\s*TRACE\\s*\\|",    "\\|\\s*FATAL\\s*\\|"};
-
-    for (int i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++)
-    {
-        if (regcomp(&regex_patterns[i], patterns[i], REG_EXTENDED | REG_ICASE) != 0)
-        {
-            fprintf(stderr, "Failed to compile regex: %s\n", patterns[i]);
-            exit(EXIT_FAILURE);
-        }
-    }
-}
-
-void free_regex_patterns()
-{
-    for (int i = 0; i < sizeof(regex_patterns) / sizeof(regex_patterns[0]); i++)
-    {
-        regfree(&regex_patterns[i]);
-    }
-}
-
+/**
+ * @brief Increments the count for the matched log level.
+ *
+ * Thread-safe function that uses a mutex to protect the
+ * global count variables. Uses pre-compiled regex patterns
+ * from log_levels.h for efficient matching.
+ *
+ * @param line The log line to analyze.
+ */
 void count_log_levels(const char *line)
 {
     pthread_mutex_lock(&count_mutex);
 
-    int matched = 0;
+    bool matched = false;
 
-    for (int i = 0; i < sizeof(regex_patterns) / sizeof(regex_patterns[0]); i++)
+    for (int i = 0; i < LOG_LEVEL_COUNT; i++)
     {
-        if (regexec(&regex_patterns[i], line, 0, NULL, 0) == 0)
+        if (log_level_matches(line, (LogLevelType)i))
         {
-            matched = 1;
+            matched = true;
             switch (i)
             {
-            case 0:
+            case LOG_LEVEL_CRITICAL:
                 critical_count++;
-                break; // CRITICAL
-            case 1:
+                break;
+            case LOG_LEVEL_WARNING:
                 warning_count++;
-                break; // WARNING
-            case 2:
+                break;
+            case LOG_LEVEL_INFO:
                 info_count++;
-                break; // INFO
-            case 3:
+                break;
+            case LOG_LEVEL_DEBUG:
                 debug_count++;
-                break; // DEBUG
-            case 4:
+                break;
+            case LOG_LEVEL_ERROR:
                 error_count++;
-                break; // ERROR
-            case 5:
+                break;
+            case LOG_LEVEL_UNKNOWN:
                 unknown_count++;
-                break; // UNKNOWN
-            case 6:
+                break;
+            case LOG_LEVEL_TRACE:
                 trace_count++;
-                break; // TRACE
-            case 7:
+                break;
+            case LOG_LEVEL_FATAL:
                 fatal_count++;
-                break; // FATAL
+                break;
+            default:
+                break;
             }
             break;
         }
@@ -126,6 +121,19 @@ void count_log_levels(const char *line)
     pthread_mutex_unlock(&count_mutex);
 }
 
+/**
+ * @brief Processes a single log line through filters and output.
+ *
+ * Checks if the line passes all filters, then either prints it
+ * with colorization or just counts it. Statistics are always updated.
+ *
+ * @param line The log line to process.
+ * @param filter_levels Array of level names to filter by.
+ * @param filter_count Number of filter levels specified.
+ * @param print_lines Whether to actually print matching lines.
+ * @param start_date Start of date range filter (or NULL).
+ * @param end_date End of date range filter (or NULL).
+ */
 void process_line(const char *line, char *filter_levels[], int filter_count, int print_lines,
                   const char *const start_date, const char *const end_date)
 {
@@ -147,18 +155,34 @@ void process_line(const char *line, char *filter_levels[], int filter_count, int
     }
 }
 
+/**
+ * @brief Starts the log monitoring process.
+ *
+ * Opens the specified file (or reads from stdin), optionally enables
+ * real-time monitoring with inotify, processes all lines, and displays
+ * statistics at the end.
+ *
+ * @param file_name Path to log file, or NULL for stdin.
+ * @param filter_levels Array of level names to filter by.
+ * @param filter_count Number of filter levels specified.
+ * @param real_time Enable real-time file monitoring.
+ * @param show_stats Display performance statistics.
+ * @param print_lines Whether to print matching lines.
+ * @param start_date Start of date range filter (or NULL).
+ * @param end_date End of date range filter (or NULL).
+ */
 void start_log_monitor(const char *file_name, char *filter_levels[], int filter_count, int real_time, int show_stats,
                        int print_lines, const char *start_date, const char *end_date)
 {
     signal(SIGINT, handle_signal);
 
-    compile_regex_patterns();
+    log_level_compile_all();
     if (show_stats)
     {
         start_monitoring();
     }
 
-    int use_stdin = (file_name == NULL);
+    bool use_stdin = (file_name == NULL);
     int fd;
     if (use_stdin)
     {
@@ -170,12 +194,20 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
         if (fd == -1)
         {
             perror("open");
-            free_regex_patterns();
+            log_level_free_all();
             return;
         }
     }
 
     char *buffer = malloc(INITIAL_BUFFER_SIZE);
+    if (buffer == NULL)
+    {
+        perror("malloc");
+        if (!use_stdin)
+            close(fd);
+        log_level_free_all();
+        return;
+    }
     size_t buffer_size = INITIAL_BUFFER_SIZE;
     size_t current_length = 0;
 
@@ -187,6 +219,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
             perror("inotify_init");
             close(fd);
             free(buffer);
+            log_level_free_all();
             return;
         }
 
@@ -197,6 +230,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
             close(fd);
             close(inotify_fd);
             free(buffer);
+            log_level_free_all();
             return;
         }
 
@@ -208,9 +242,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
             FD_ZERO(&readfds);
             FD_SET(inotify_fd, &readfds);
 
-            struct timeval tv;
-            tv.tv_sec = 1;
-            tv.tv_usec = 0;
+            struct timeval tv = {1, 0};
 
             int retval = select(inotify_fd + 1, &readfds, NULL, NULL, &tv);
 
@@ -252,7 +284,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
                     line_start = line_end + 1;
                 }
 
-                current_length -= (line_start - buffer);
+                current_length -= (size_t)(line_start - buffer);
                 memmove(buffer, line_start, current_length);
                 offset += bytes_read;
             }
@@ -266,7 +298,6 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
     }
     else
     {
-        /* Non‑real‑time read: read until EOF. */
         ssize_t bytes_read;
         while ((bytes_read = read(fd, buffer + current_length, buffer_size - current_length - 1)) > 0)
         {
@@ -283,7 +314,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
                 line_start = line_end + 1;
             }
 
-            current_length -= (line_start - buffer);
+            current_length -= (size_t)(line_start - buffer);
             memmove(buffer, line_start, current_length);
         }
 
@@ -295,7 +326,7 @@ void start_log_monitor(const char *file_name, char *filter_levels[], int filter_
         print_statistics();
     }
 
-    free_regex_patterns();
+    log_level_free_all();
     free(buffer);
     if (show_stats)
     {

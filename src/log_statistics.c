@@ -1,5 +1,20 @@
-#include "log_statistics.h"
+/**
+ * @file log_statistics.c
+ * @brief Log statistics collection and reporting.
+ *
+ * Tracks and displays statistics about processed log lines,
+ * organized by log level.
+ */
 
+#include "log_statistics.h"
+#include "log_levels.h"
+#include <stdio.h>
+
+/**
+ * @brief Counts for each log level.
+ *
+ * These are defined in log_monitor.c and externed here.
+ */
 extern long int critical_count;
 extern long int warning_count;
 extern long int info_count;
@@ -9,26 +24,55 @@ extern long int trace_count;
 extern long int unknown_count;
 extern long int fatal_count;
 
-void print_statistics()
+/**
+ * @brief Maps log level types to their corresponding count variables.
+ *
+ * Provides access to count variables by log level index.
+ *
+ * @param level The log level type.
+ * @return Pointer to the count variable for the given level.
+ */
+static long int *get_count_ptr(LogLevelType level)
 {
-    LogLevel log_levels[] = {
-        {"CRITICAL", critical_count, "\033[1;31m"}, // RED
-        {"ERROR", error_count, "\033[1;31m"},       // RED
-        {"FATAL", fatal_count, "\033[38;5;214m"},   // ORANGE
-        {"WARNING", warning_count, "\033[1;33m"},   // YELLOW
-        {"INFO", info_count, "\033[1;32m"},         // GREEN
-        {"TRACE", trace_count, "\033[1;34m"},       // BLUE
-        {"DEBUG", debug_count, "\033[1;32m"},       // GREEN
-        {"UNKNOWN", unknown_count, "\033[1;37m"}    // WHITE
-    };
-
-    printf("\033[1;34m┌─────────────────────────────⬤ \n│    Log Statistics:\n");
-
-    for (int i = 0; i < sizeof(log_levels) / sizeof(log_levels[0]); i++)
+    switch (level)
     {
-        if (log_levels[i].count > 0)
+    case LOG_LEVEL_CRITICAL:
+        return &critical_count;
+    case LOG_LEVEL_ERROR:
+        return &error_count;
+    case LOG_LEVEL_FATAL:
+        return &fatal_count;
+    case LOG_LEVEL_WARNING:
+        return &warning_count;
+    case LOG_LEVEL_INFO:
+        return &info_count;
+    case LOG_LEVEL_DEBUG:
+        return &debug_count;
+    case LOG_LEVEL_TRACE:
+        return &trace_count;
+    case LOG_LEVEL_UNKNOWN:
+    default:
+        return &unknown_count;
+    }
+}
+
+/**
+ * @brief Prints formatted statistics for all log levels.
+ *
+ * Displays a summary table of log counts, only showing levels
+ * with non-zero counts. Output is colorized by level.
+ */
+void print_statistics(void)
+{
+    printf("\033[1;34m┌─────────────────────────────⬤ \n");
+    printf("│    Log Statistics:\n");
+
+    for (int i = 0; i < LOG_LEVEL_COUNT; i++)
+    {
+        long int *count = get_count_ptr((LogLevelType)i);
+        if (*count > 0)
         {
-            printf("\033[0;34m│%s ⬤ %s: %ld\n", log_levels[i].color, log_levels[i].label, log_levels[i].count);
+            printf("\033[0;34m│%s ⬤ %s: %ld\n", LOG_LEVELS[i].color, LOG_LEVELS[i].label, *count);
         }
     }
 
